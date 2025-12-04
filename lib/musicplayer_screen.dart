@@ -1,5 +1,4 @@
 import 'package:audioplayers/audioplayers.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:simple_musicplayer/song.dart';
 
@@ -23,21 +22,24 @@ class _MusicPlayerScreenState extends State<MusicPlayerScreen> {
       title: "Oniket Prantor",
       artist: "Artcell",
       url: "https://samplelib.com/lib/preview/mp3/sample-3s.mp3",
-      thumnailURL: "",
+      thumnailURL:
+          "https://tse3.mm.bing.net/th/id/OIP.T6nYAeTgm5ldiJV0ONKbnQHaHa?rs=1&pid=ImgDetMain&o=7&rm=3",
       durationSeconds: 180,
     ),
     Song(
       title: "Tor Ekta Photo",
       artist: "Habib",
       url: "https://samplelib.com/lib/preview/mp3/sample-6s.mp3",
-      thumnailURL: "",
+      thumnailURL:
+          "https://tse3.mm.bing.net/th/id/OIP.T6nYAeTgm5ldiJV0ONKbnQHaHa?rs=1&pid=ImgDetMain&o=7&rm=3",
       durationSeconds: 200,
     ),
     Song(
       title: "Bondho Janala",
       artist: "Shironamhin",
       url: "https://samplelib.com/lib/preview/mp3/sample-12s.mp3",
-      thumnailURL: "",
+      thumnailURL:
+          "https://tse3.mm.bing.net/th/id/OIP.T6nYAeTgm5ldiJV0ONKbnQHaHa?rs=1&pid=ImgDetMain&o=7&rm=3",
       durationSeconds: 240,
     ),
   ];
@@ -73,20 +75,19 @@ class _MusicPlayerScreenState extends State<MusicPlayerScreen> {
 
   Future<void> playSong(int index) async {
     try {
+      currentIndex = index;
+      isPlaying = false;
       setState(() {
-        currentIndex = index;
-        isPlaying = false; // Reset while loading
+        currentPos = Duration.zero;
+        totalDuration = Duration.zero; // Reset while loading
       });
 
       await _player.stop();
-
-      // Set the source and play - FIXED: Remove redundant setSourceUrl
       await _player.play(UrlSource(playlist[index].url));
 
       setState(() {
         isPlaying = true;
       });
-
     } catch (e) {
       print('Error playing song: $e');
       // Show error to user
@@ -109,14 +110,14 @@ class _MusicPlayerScreenState extends State<MusicPlayerScreen> {
     }
   }
 
-  void nextSong() {
+  void nextSong() async {
     int nextIndex = (currentIndex + 1) % playlist.length;
-    playSong(nextIndex);
+    await playSong(nextIndex);
   }
 
-  void prevSong() {
+  Future<void> prevSong() async {
     int prevIndex = (currentIndex - 1 + playlist.length) % playlist.length;
-    playSong(prevIndex);
+    await playSong(prevIndex);
   }
 
   @override
@@ -139,22 +140,32 @@ class _MusicPlayerScreenState extends State<MusicPlayerScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(currentSong.title,
-                    style: const TextStyle(
-                        fontSize: 22, fontWeight: FontWeight.bold)),
-                Text(currentSong.artist,
-                    style: TextStyle(
-                        fontSize: 16, color: Colors.grey[600])),
+                Text(
+                  currentSong.title,
+                  style: const TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                Text(
+                  currentSong.artist,
+                  style: TextStyle(fontSize: 16, color: Colors.grey[600]),
+                ),
 
                 const SizedBox(height: 16),
 
                 // Slider
                 Slider(
-                  value: currentPos.inSeconds.toDouble().clamp(0, totalDuration.inSeconds.toDouble()),
+                  value: currentPos.inSeconds.toDouble().clamp(
+                    0,
+                    totalDuration.inSeconds.toDouble(),
+                  ),
                   min: 0,
-                  max: totalDuration.inSeconds.toDouble() == 0 ? 1 : totalDuration.inSeconds.toDouble(),
+                  max: totalDuration.inSeconds.toDouble() == 0
+                      ? 1
+                      : totalDuration.inSeconds.toDouble(),
                   onChanged: (value) {
-                    _player.seek(Duration(seconds: value.toInt()));
+                    //_player.seek(Duration(seconds: value.toInt()));
                   },
                 ),
 
@@ -181,7 +192,8 @@ class _MusicPlayerScreenState extends State<MusicPlayerScreen> {
                     IconButton(
                       iconSize: 50,
                       icon: Icon(
-                          isPlaying ? Icons.pause_circle : Icons.play_circle),
+                        isPlaying ? Icons.pause_circle : Icons.play_circle,
+                      ),
                       onPressed: togglePlayPause,
                     ),
                     IconButton(
